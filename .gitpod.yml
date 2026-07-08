@@ -1,0 +1,10 @@
+tasks:
+  - name: Install dependencies
+    init: npm install
+  - name: Start dev server
+    command: npm run dev
+
+vscode:
+  extensions:
+    - dbaeumer.vscode-eslint
+    - esbenp.prettier-vscode
