@@ -122,8 +122,28 @@ body {
   gap: 4px;
 }
 
+.status-text {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.error-text {
+  margin: 0 0 10px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 .call-panel .controls-grid {
   margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+.back-btn {
+  width: 100%;
+}
+
+audio {
+  display: none;
 }
 
 @media (max-width: 560px) {
