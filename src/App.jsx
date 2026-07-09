@@ -182,7 +182,9 @@ export default function App() {
     socket.on('signal', async (payload) => {
       try {
         await handleSignal(payload);
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('WebRTC signal handling failed', error);
         setStatusText('Erreur de connexion WebRTC');
       }
     });
@@ -224,8 +226,14 @@ export default function App() {
 
     try {
       await ensureLocalStream();
-    } catch {
-      setErrorText("Impossible d'accéder au micro. Vérifie les permissions.");
+    } catch (error) {
+      if (error?.name === 'NotAllowedError') {
+        setErrorText('Accès au micro refusé. Autorise le micro pour continuer.');
+      } else if (error?.name === 'NotFoundError') {
+        setErrorText('Aucun micro détecté sur cet appareil.');
+      } else {
+        setErrorText("Impossible d'accéder au micro. Vérifie les permissions.");
+      }
       setStatusText('Micro indisponible');
       return;
     }

@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
+import { randomBytes } from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3001);
 const FRANCE_OPTION = 'France entière';
@@ -26,7 +27,7 @@ const isCompatible = (a, b) => a === b || a === FRANCE_OPTION || b === FRANCE_OP
 
 const createRoomId = () => {
   if (globalThis.crypto?.randomUUID) return `room_${globalThis.crypto.randomUUID()}`;
-  return `room_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+  return `room_${randomBytes(16).toString('hex')}`;
 };
 
 const removeFromQueue = (socketId) => {
@@ -111,9 +112,16 @@ io.on('connection', (socket) => {
   socket.on('join-queue', (payload = {}) => {
     const username = String(payload.username || '').trim().slice(0, 32);
     const region = String(payload.region || '').trim().slice(0, 64);
+    const safeUsernamePattern = /^[\p{L}\p{N} _.'-]+$/u;
+    const safeRegionPattern = /^[\p{L}\p{N} _'À-ÿ-]+$/u;
 
     if (!username || !region) {
       socket.emit('error-message', 'Pseudo et région requis.');
+      return;
+    }
+
+    if (!safeUsernamePattern.test(username) || !safeRegionPattern.test(region)) {
+      socket.emit('error-message', 'Pseudo ou région invalide.');
       return;
     }
 
