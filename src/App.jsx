@@ -17,6 +17,8 @@ const REGIONS = [
   'Corse',
   'Outre-mer'
 ];
+// Option affichée séparément pour la mettre en bouton principal pleine largeur.
+const FRANCE_OPTION = 'France entière';
 
 const MATCH_NAMES = [
   'Alex',
@@ -31,8 +33,15 @@ const MATCH_NAMES = [
   'Lina'
 ];
 
+const createMatchId = () => {
+  if (globalThis.crypto?.randomUUID) {
+    return `match_${globalThis.crypto.randomUUID()}`;
+  }
+  return `match_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+};
+
 const makeMatch = (region) => ({
-  id: `match_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+  id: createMatchId(),
   name: MATCH_NAMES[Math.floor(Math.random() * MATCH_NAMES.length)],
   region
 });
@@ -40,7 +49,7 @@ const makeMatch = (region) => ({
 export default function App() {
   const [username, setUsername] = useState(localStorage.getItem('cttl_voice_user') || '');
   const [step, setStep] = useState(username ? 'home' : 'login');
-  const [selectedRegion, setSelectedRegion] = useState('France entière');
+  const [selectedRegion, setSelectedRegion] = useState(FRANCE_OPTION);
   const [currentMatch, setCurrentMatch] = useState(null);
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -124,8 +133,8 @@ export default function App() {
                   {region}
                 </button>
               ))}
-              <button className="btn primary france-btn" onClick={() => selectRegion('France entière')}>
-                France entière
+              <button className="btn primary france-btn" onClick={() => selectRegion(FRANCE_OPTION)}>
+                {FRANCE_OPTION}
               </button>
             </div>
           </div>
