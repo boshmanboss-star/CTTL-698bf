@@ -314,7 +314,7 @@ export default function App() {
   }, []);
 
   return (
-    <main className="app">
+    <main className="app app-container">
       <section className="card">
         <header className="header">
           <h1>Chat Vocal Simple</h1>
@@ -337,9 +337,9 @@ export default function App() {
         )}
 
         {step === 'home' && (
-          <div className="panel center">
+          <div className="panel center voice-room">
             <p className="welcome">Salut {username} 👋</p>
-            <button className="voice-circle" onClick={startVoiceFlow}>
+            <button className="voice-circle audio-indicator" onClick={startVoiceFlow}>
               Chatter en vocal
             </button>
             <button className="btn ghost" onClick={logout}>Se déconnecter</button>
@@ -349,9 +349,9 @@ export default function App() {
         {step === 'regions' && (
           <div className="panel">
             <p className="hint">Choisis une région ou la France entière.</p>
-            <div className="regions-grid">
+            <div className="regions-grid region-grid">
               {REGIONS.map((region) => (
-                <button key={region} className="btn" onClick={() => joinQueue(region)}>
+                <button key={region} className="btn region-card" onClick={() => joinQueue(region)}>
                   {region}
                 </button>
               ))}

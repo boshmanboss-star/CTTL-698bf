@@ -156,3 +156,45 @@ audio {
     grid-template-columns: 1fr;
   }
 }
+
+.app-container {
+  font-family: sans-serif;
+  background-color: #0f1025;
+  color: white;
+  padding: 20px;
+}
+
+.region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.region-card {
+  background: white;
+  color: black;
+  border-radius: 12px;
+  padding: 20px;
+  border: none;
+  font-weight: bold;
+}
+
+.voice-room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.audio-indicator {
+  width: 100px;
+  height: 100px;
+  background: #4a47d4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin-bottom: 20px;
+}
