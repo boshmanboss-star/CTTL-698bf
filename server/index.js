@@ -2,10 +2,14 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3001);
 const FRANCE_OPTION = 'France entière';
+const MAX_USERNAME_LENGTH = 32;
+const MAX_REGION_LENGTH = 64;
+const SAFE_USERNAME_PATTERN = /^[\p{L}\p{N} _.'-]+$/u;
+const SAFE_REGION_PATTERN = /^[\p{L}\p{N} _'-]+$/u;
 
 const app = express();
 app.use(cors());
@@ -25,10 +29,7 @@ const activeMatches = new Map();
 
 const isCompatible = (a, b) => a === b || a === FRANCE_OPTION || b === FRANCE_OPTION;
 
-const createRoomId = () => {
-  if (typeof randomUUID === 'function') return `room_${randomUUID()}`;
-  return `room_${randomBytes(16).toString('hex')}`;
-};
+const createRoomId = () => `room_${randomUUID()}`;
 
 const removeFromQueue = (socketId) => {
   const index = waitingQueue.findIndex((item) => item.socketId === socketId);
@@ -110,17 +111,15 @@ const queueOrMatch = (socket) => {
 
 io.on('connection', (socket) => {
   socket.on('join-queue', (payload = {}) => {
-    const username = String(payload.username || '').trim().slice(0, 32);
-    const region = String(payload.region || '').trim().slice(0, 64);
-    const safeUsernamePattern = /^[\p{L}\p{N} _.'-]+$/u;
-    const safeRegionPattern = /^[\p{L}\p{N} _'-]+$/u;
+    const username = String(payload.username || '').trim().slice(0, MAX_USERNAME_LENGTH);
+    const region = String(payload.region || '').trim().slice(0, MAX_REGION_LENGTH);
 
     if (!username || !region) {
       socket.emit('error-message', 'Pseudo et région requis.');
       return;
     }
 
-    if (!safeUsernamePattern.test(username) || !safeRegionPattern.test(region)) {
+    if (!SAFE_USERNAME_PATTERN.test(username) || !SAFE_REGION_PATTERN.test(region)) {
       socket.emit('error-message', 'Pseudo ou région invalide.');
       return;
     }

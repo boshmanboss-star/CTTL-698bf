@@ -184,7 +184,7 @@ export default function App() {
         await handleSignal(payload);
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('WebRTC signal handling failed', error);
+        console.error('WebRTC signal handling failed for type:', payload?.data?.type, error);
         setStatusText('Erreur de connexion WebRTC');
       }
     });
@@ -231,6 +231,10 @@ export default function App() {
         setErrorText('Accès au micro refusé. Autorise le micro pour continuer.');
       } else if (error?.name === 'NotFoundError') {
         setErrorText('Aucun micro détecté sur cet appareil.');
+      } else if (error?.name === 'NotReadableError') {
+        setErrorText('Le micro est déjà utilisé par une autre application.');
+      } else if (error?.name === 'OverconstrainedError') {
+        setErrorText('Le micro ne correspond pas aux contraintes demandées.');
       } else {
         setErrorText("Impossible d'accéder au micro. Vérifie les permissions.");
       }
