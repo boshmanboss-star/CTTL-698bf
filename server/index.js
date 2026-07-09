@@ -8,7 +8,7 @@ const PORT = Number(process.env.PORT || 3001);
 const FRANCE_OPTION = 'France entière';
 const MAX_USERNAME_LENGTH = 32;
 const MAX_REGION_LENGTH = 64;
-const SAFE_USERNAME_PATTERN = /^[\p{L}\p{N} _.'-]+$/u;
+const SAFE_USERNAME_PATTERN = /^[\p{L}\p{N} _'-]+$/u;
 const SAFE_REGION_PATTERN = /^[\p{L}\p{N} _'-]+$/u;
 
 const app = express();
@@ -62,57 +62,60 @@ const queueOrMatch = (socket) => {
 
   removeFromQueue(socket.id);
 
-  const partnerIndex = waitingQueue.findIndex((candidate) => {
-    if (candidate.socketId === socket.id) return false;
-    return isCompatible(candidate.region, profile.region);
-  });
+  while (true) {
+    const partnerIndex = waitingQueue.findIndex((candidate) => {
+      if (candidate.socketId === socket.id) return false;
+      return isCompatible(candidate.region, profile.region);
+    });
 
-  if (partnerIndex === -1) {
-    waitingQueue.push({ socketId: socket.id, region: profile.region });
-    socket.emit('waiting', { region: profile.region });
+    if (partnerIndex === -1) {
+      waitingQueue.push({ socketId: socket.id, region: profile.region });
+      socket.emit('waiting', { region: profile.region });
+      return;
+    }
+
+    const partnerEntry = waitingQueue.splice(partnerIndex, 1)[0];
+    const partnerSocket = io.sockets.sockets.get(partnerEntry.socketId);
+    if (!partnerSocket) continue;
+
+    const partnerProfile = profiles.get(partnerSocket.id);
+    if (!partnerProfile) continue;
+
+    const roomId = createRoomId();
+    socket.join(roomId);
+    partnerSocket.join(roomId);
+
+    activeMatches.set(socket.id, { partnerId: partnerSocket.id, roomId });
+    activeMatches.set(partnerSocket.id, { partnerId: socket.id, roomId });
+
+    socket.emit('matched', {
+      roomId,
+      partnerName: partnerProfile.username,
+      region: profile.region,
+      initiator: true
+    });
+
+    partnerSocket.emit('matched', {
+      roomId,
+      partnerName: profile.username,
+      region: partnerProfile.region,
+      initiator: false
+    });
     return;
   }
-
-  const partnerEntry = waitingQueue.splice(partnerIndex, 1)[0];
-  const partnerSocket = io.sockets.sockets.get(partnerEntry.socketId);
-
-  if (!partnerSocket) {
-    queueOrMatch(socket);
-    return;
-  }
-
-  const partnerProfile = profiles.get(partnerSocket.id);
-  if (!partnerProfile) {
-    queueOrMatch(socket);
-    return;
-  }
-
-  const roomId = createRoomId();
-  socket.join(roomId);
-  partnerSocket.join(roomId);
-
-  activeMatches.set(socket.id, { partnerId: partnerSocket.id, roomId });
-  activeMatches.set(partnerSocket.id, { partnerId: socket.id, roomId });
-
-  socket.emit('matched', {
-    roomId,
-    partnerName: partnerProfile.username,
-    region: profile.region,
-    initiator: true
-  });
-
-  partnerSocket.emit('matched', {
-    roomId,
-    partnerName: profile.username,
-    region: partnerProfile.region,
-    initiator: false
-  });
 };
 
 io.on('connection', (socket) => {
   socket.on('join-queue', (payload = {}) => {
-    const username = String(payload.username || '').trim().slice(0, MAX_USERNAME_LENGTH);
-    const region = String(payload.region || '').trim().slice(0, MAX_REGION_LENGTH);
+    const rawUsername = String(payload.username || '').trim();
+    const rawRegion = String(payload.region || '').trim();
+    const username = rawUsername.slice(0, MAX_USERNAME_LENGTH);
+    const region = rawRegion.slice(0, MAX_REGION_LENGTH);
+
+    if (rawUsername.length > MAX_USERNAME_LENGTH || rawRegion.length > MAX_REGION_LENGTH) {
+      socket.emit('error-message', 'Pseudo ou région trop long.');
+      return;
+    }
 
     if (!username || !region) {
       socket.emit('error-message', 'Pseudo et région requis.');
