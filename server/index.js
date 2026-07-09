@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 const PORT = Number(process.env.PORT || 3001);
 const FRANCE_OPTION = 'France entière';
@@ -26,7 +26,7 @@ const activeMatches = new Map();
 const isCompatible = (a, b) => a === b || a === FRANCE_OPTION || b === FRANCE_OPTION;
 
 const createRoomId = () => {
-  if (globalThis.crypto?.randomUUID) return `room_${globalThis.crypto.randomUUID()}`;
+  if (typeof randomUUID === 'function') return `room_${randomUUID()}`;
   return `room_${randomBytes(16).toString('hex')}`;
 };
 
@@ -113,7 +113,7 @@ io.on('connection', (socket) => {
     const username = String(payload.username || '').trim().slice(0, 32);
     const region = String(payload.region || '').trim().slice(0, 64);
     const safeUsernamePattern = /^[\p{L}\p{N} _.'-]+$/u;
-    const safeRegionPattern = /^[\p{L}\p{N} _'À-ÿ-]+$/u;
+    const safeRegionPattern = /^[\p{L}\p{N} _'-]+$/u;
 
     if (!username || !region) {
       socket.emit('error-message', 'Pseudo et région requis.');
