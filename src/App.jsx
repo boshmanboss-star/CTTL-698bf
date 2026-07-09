@@ -164,7 +164,7 @@ export default function App() {
     socket.on('waiting', () => {
       cleanupPeer();
       setCurrentMatchName('');
-      setStatusText('Recherche d\'une personne...');
+      setStatusText("Recherche d'une personne...");
     });
 
     socket.on('matched', async (payload = {}) => {
@@ -225,7 +225,7 @@ export default function App() {
     try {
       await ensureLocalStream();
     } catch {
-      setErrorText('Impossible d\'accéder au micro. Vérifie les permissions.');
+      setErrorText("Impossible d'accéder au micro. Vérifie les permissions.");
       setStatusText('Micro indisponible');
       return;
     }
@@ -239,7 +239,7 @@ export default function App() {
 
     const socket = ensureSocket();
     socket.emit('join-queue', { username, region });
-    setStatusText('Recherche d\'une personne...');
+    setStatusText("Recherche d'une personne...");
   };
 
   const zapToNext = () => {
@@ -247,7 +247,7 @@ export default function App() {
     if (!socket) return;
     cleanupPeer();
     setCurrentMatchName('');
-    setStatusText('Recherche d\'une personne...');
+    setStatusText("Recherche d'une personne...");
     socket.emit('zap');
   };
 
